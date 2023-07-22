@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         current_instance.print();                          //printing the instances
     }
 
-
+    
     
     try {
         // Cria o ambiente Gurobi
@@ -32,13 +32,15 @@ int main(int argc, char** argv) {
         // Cria as variáveis de decisão
         char var[100];                        
     
-        GRBVar*** x = new GRBVar**[vertex];
+        GRBVar*** x = new GRBVar**[current_instance.dimension];
 
-        for (int i = 0; i < vertex; i++) {
-            x[i] = new GRBVar*[vertex];
-            for (int j = 0; j < vertex; j++) {
-                x[i][j] = new GRBVar[vehicles];
-                for (int k = 0; k < vehicles; k++) {
+        for (int i = 0; i < current_instance.dimension; i++) {
+            x[i] = new GRBVar*[current_instance.dimension];
+
+            for (int j = 0; j < current_instance.dimension; j++) {
+                x[i][j] = new GRBVar[current_instance.vehicles];
+                
+                for (int k = 0; k < current_instance.vehicles; k++) {
 
                     if (i != j){
                         sprintf(var, "x(%d,%d,%d)", i, j, k);
@@ -48,22 +50,22 @@ int main(int argc, char** argv) {
             }
         }
 
-        GRBVar** t = new GRBVar*[vertex];
+        GRBVar** t = new GRBVar*[current_instance.dimension];
 
-        for (int i = 0; i < vertex; i++) {
-            t[i] = new GRBVar[vehicles];
-            for (int j = 0; j < vehicles; j++) {
+        for (int i = 0; i < current_instance.dimension; i++) {
+            t[i] = new GRBVar[current_instance.vehicles];
+            for (int j = 0; j < current_instance.vehicles; j++) {
 
                     sprintf(var, "t(%d,%d)", i, j);
                     t[i][j] =  modelo.addVar(0.0, GRB_INFINITY, 0.0, GRB_CONTINUOUS, var);
             }
         }
 
-        GRBVar** h = new GRBVar*[vertex];
+        GRBVar** h = new GRBVar*[current_instance.dimension];
 
-        for (int i = 1; i < vertex; i++) {
-            h[i] = new GRBVar[vehicles];
-            for (int j = 0; j < vehicles; j++) {
+        for (int i = 1; i < current_instance.dimension; i++) {
+            h[i] = new GRBVar[current_instance.vehicles];
+            for (int j = 0; j < current_instance.vehicles; j++) {
 
                     sprintf(var, "h(%d,%d)", i, j);
                     h[i][j] =  modelo.addVar(0.0, GRB_INFINITY, 0.0, GRB_CONTINUOUS, var);
@@ -73,9 +75,9 @@ int main(int argc, char** argv) {
         }
     
         GRBLinExpr sum = 0;
-        for(int j = 0 ; j < vertex; j++){        //first somatory of objective function
-            for(int i = 0 ; i < vertex; i++){    
-                for(int k = 0 ; k < vehicles ; k++){       
+        for(int j = 0 ; j < current_instance.dimension; j++){        //first somatory of objective function
+            for(int i = 0 ; i < current_instance.dimension; i++){    
+                for(int k = 0 ; k < current_instance.vehicles ; k++){       
                     
                     if(i != j)
                         sum +=  c[i][j] * x[i][j][k];
@@ -85,8 +87,8 @@ int main(int argc, char** argv) {
 
         float w = 0.5;
         GRBLinExpr sum2 = 0;
-        for(int i = 1; i < vertex; i++){     //second somatory of objective function
-            for(int k = 0 ; k < vehicles ; k++){       
+        for(int i = 1; i < current_instance.dimension; i++){     //second somatory of objective function
+            for(int k = 0 ; k < current_instance.vehicles ; k++){       
                 sum2 += w * h[i][k];                  
             }
         }
@@ -98,8 +100,8 @@ int main(int argc, char** argv) {
         // Adiciona as restrições
         
         //Extra constraint: need to limitate de H
-        for(int i = 1 ; i < vertex; i++){        //i E V' (vertices without 0)   
-            for(int k = 0 ; k < vehicles ; k++){       // k E K
+        for(int i = 1 ; i < current_instance.dimension; i++){        //i E V' (vertices without 0)   
+            for(int k = 0 ; k < current_instance.vehicles ; k++){       // k E K
 
                 GRBLinExpr exp = 0;
                 
@@ -111,10 +113,10 @@ int main(int argc, char** argv) {
         }
 
         //Constraint 1: all requests must be served 
-        for(int i = 1 ; i < vertex; i++){        //i E V' (vertices without 0)
+        for(int i = 1 ; i < current_instance.dimension; i++){        //i E V' (vertices without 0)
             GRBLinExpr sum = 0;
-            for(int j = 0 ; j < vertex; j++){    //j E V 
-                for(int k = 0 ; k < vehicles; k++){       // k E K
+            for(int j = 0 ; j < current_instance.dimension; j++){    //j E V 
+                for(int k = 0 ; k < current_instance.vehicles; k++){       // k E K
                     
                     if(i != j){
                         sum += x[i][j][k];
@@ -127,12 +129,12 @@ int main(int argc, char** argv) {
         }
 
         //Constraint 2: every vertex is served exactly once 
-        for (int i = 1; i < vertex; i++) {   
-            for(int k = 0; k < vehicles; k++){
+        for (int i = 1; i < current_instance.dimension; i++) {   
+            for(int k = 0; k < current_instance.vehicles; k++){
 
                 GRBLinExpr exp = 0;
                 GRBLinExpr exp2 = 0;
-                for (int j = 0; j < vertex; j++){
+                for (int j = 0; j < current_instance.dimension; j++){
                     
                     if(i != j){
                         exp += x[j][i][k];
@@ -148,10 +150,10 @@ int main(int argc, char** argv) {
 
 
         //Constraint 3  : first somatory - leaving depot
-        for(int k = 0; k < vehicles; k++){
+        for(int k = 0; k < current_instance.vehicles; k++){
             GRBLinExpr sum = 0;
             
-            for (int j = 1; j < vertex; j++){
+            for (int j = 1; j < current_instance.dimension; j++){
                 
                 sum += x[0][j][k];
             }
@@ -162,9 +164,9 @@ int main(int argc, char** argv) {
 
 
         //Constraint 3  : second somatory - arriving depot
-        for(int k = 0; k < vehicles; k++){
+        for(int k = 0; k < current_instance.vehicles; k++){
             GRBLinExpr sum = 0;
-            for (int j = 1; j < vertex; j++){
+            for (int j = 1; j < current_instance.dimension; j++){
                 
                 sum += x[j][0][k];
             }
@@ -175,10 +177,10 @@ int main(int argc, char** argv) {
 
 
         // Constraint 4 : to not overflow the capacity of the vehicle
-        for(int k = 0; k < vehicles; k++){        
+        for(int k = 0; k < current_instance.vehicles; k++){        
             GRBLinExpr sum = 0;
-            for(int j = 0 ; j < vertex; j++){
-                for(int i = 1 ; i < vertex; i++){
+            for(int j = 0 ; j < current_instance.dimension; j++){
+                for(int i = 1 ; i < current_instance.dimension; i++){
                     
                     if(i != j)
                         sum += x[i][j][k] * demand[i];
@@ -193,9 +195,9 @@ int main(int argc, char** argv) {
         //IloNum M = 1e9;
         int M = 1e8;
         //Constraint 5                                          
-        for(int i = 0; i < vertex; i++){             
-            for(int j = 1; j < vertex; j++){
-                for(int k = 0; k < vehicles; k++){
+        for(int i = 0; i < current_instance.dimension; i++){             
+            for(int j = 1; j < current_instance.dimension; j++){
+                for(int k = 0; k < current_instance.vehicles; k++){
                     
                     GRBLinExpr exp = 0;
 
@@ -210,11 +212,11 @@ int main(int argc, char** argv) {
         }
 
         //Constraint 6  - ensures that the vehicle leaves after the last release date
-        for(int i = 1 ; i < vertex; i++){           
-            for(int k = 0; k < vehicles; k++){
+        for(int i = 1 ; i < current_instance.dimension; i++){           
+            for(int k = 0; k < current_instance.vehicles; k++){
 
                 GRBLinExpr sum = 0;
-                for(int j = 0; j < vertex; j++){
+                for(int j = 0; j < current_instance.dimension; j++){
 
                     if(i != j)
                         sum += x[j][i][k];
@@ -239,10 +241,10 @@ int main(int argc, char** argv) {
             //std::cout << "Valor de y: " << y.get(GRB_DoubleAttr_X) << std::endl;
         modelo.write("modelo.lp");
 	
-            for (int i = 0; i < vertex; i++) {
-                for (int j = 0; j < vertex; j++) {
+            for (int i = 0; i < current_instance.dimension; i++) {
+                for (int j = 0; j < current_instance.dimension; j++) {
                     if(i != j){
-                        for(int k = 0; k < vehicles; k++){
+                        for(int k = 0; k < current_instance.vehicles; k++){
             
                             if (x[i][j][k].get(GRB_DoubleAttr_X) > 0.5)
                                 std::cout << "x_" << i << ", " << j << ", " <<  k <<" = " << x[i][j][k].get(GRB_DoubleAttr_X) << std::endl;
