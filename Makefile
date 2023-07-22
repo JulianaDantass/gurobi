@@ -1,7 +1,6 @@
 PLATFORM = linux64
 INC      = /home/juliana/gurobi1002/linux64/include
-CPP      = g++
-CPPLIB   = -L/home/juliana/gurobi1002/linux64/lib -lgurobi_c++ -lgurobi100
+CPPLIB   = -L/home/juliana/gurobi1002/linux64/lib/ -lgurobi_c++ $(CLIB)
 
 all: modelo
 
