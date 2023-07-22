@@ -1,6 +1,6 @@
 #include <gurobi_c++.h>
 #include <iostream>
-#include <instance.h>
+#include "instance.h"
 #include <vector>
 
 int main(int argc, char** argv) {
