@@ -174,6 +174,7 @@ void solve(Instance current_instance){
 
         // Cria o modelo
         GRBModel modelo = GRBModel(env);
+        modelo.getEnv().set(GRB_DoubleParam_FeasibilityTol, 1e-10);
 
         // Cria as variáveis de decisão
         char var[100];                        
