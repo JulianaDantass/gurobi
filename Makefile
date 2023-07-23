@@ -2,13 +2,24 @@ PLATFORM = linux64
 INC      = /home/juliana/gurobi1002/linux64/include
 CPP      = g++
 CPPLIB   = -L/home/juliana/gurobi1002/linux64/lib/ -lgurobi_c++ -lgurobi100
+CXXFLAGS = -Wall -std=c++11
 
-all: modelo
+TARGET = programa
 
-run: run_modelo
+# Lista de arquivos fonte (.cpp)
+SOURCES = instance.cpp vrprd.cpp
 
-modelo: vrprd.cpp
-	g++ -m64 -g vrprd.cpp -o modelo -I$(INC) $(CPPLIB) -lpthread -lm
+# Lista de arquivos objetos (.o) gerados a partir dos arquivos fonte
+OBJECTS = $(SOURCES:.cpp=.o)
 
-run_modelo: modelo
-	./modelo
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(TARGET)
+
+# Regra para compilar cada arquivo fonte (.cpp) em um arquivo objeto (.o)
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJECTS) $(TARGET)
