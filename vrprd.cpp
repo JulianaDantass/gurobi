@@ -3,24 +3,9 @@
 #include "instance.h"
 #include <vector>
 
-int main(int argc, char** argv) {
 
-    if(argc < 2){
-        printf("Correct command: ./bc data/\n");
+solve(Instance current_instance){
 
-        return 0;
-
-    }else if(argc >= 2){
-        
-        Instance current_instance;
-        string filename = string(argv[1]);
-
-        current_instance.loadInstance(filename);           //passing the atributtes of the instance to the variables
-        current_instance.print();                          //printing the instances
-    }
-
-    
-    
     try {
         // Cria o ambiente Gurobi
         GRBEnv env = GRBEnv();
@@ -80,7 +65,7 @@ int main(int argc, char** argv) {
                 for(int k = 0 ; k < current_instance.vehicles ; k++){       
                     
                     if(i != j)
-                        sum +=  c[i][j] * x[i][j][k];
+                        sum +=  current_instance.c_distances[i][j] * x[i][j][k];
                 }
             }
         }
@@ -105,7 +90,7 @@ int main(int argc, char** argv) {
 
                 GRBLinExpr exp = 0;
                 
-                exp = h[i][k] - t[i][k] + due_date[i];
+                exp = h[i][k] - t[i][k] + current_instance.requests_[i]->due_date;
                 
                 sprintf(var, "c0_%d, %d", i, k);
                 modelo.addConstr(exp >= 0, var);
@@ -183,13 +168,13 @@ int main(int argc, char** argv) {
                 for(int i = 1 ; i < current_instance.dimension; i++){
                     
                     if(i != j)
-                        sum += x[i][j][k] * demand[i];
+                        sum += x[i][j][k] * current_instance.requests_[i]->demand;
                     
                 }
             }
 
             sprintf(var, "c4_%d", k);
-            modelo.addConstr(sum <= capacity, var);
+            modelo.addConstr(sum <= current_iinstance.capacity, var);
         }
 
         //IloNum M = 1e9;
@@ -202,7 +187,7 @@ int main(int argc, char** argv) {
                     GRBLinExpr exp = 0;
 
                     if(i != j){
-                        exp = t[i][k] + c[i][j] - M + (M *  x[i][j][k]);
+                        exp = t[i][k] + current_instance.c_distances[i][j] - M + (M *  x[i][j][k]);
 
                         sprintf(var, "c5_%d,%d,%d", i,j,k);
                         modelo.addConstr(exp - t[j][k] <= 0, var);
@@ -223,7 +208,7 @@ int main(int argc, char** argv) {
                     
                 }
 
-                sum = sum * release_date[i];
+                sum = sum * current_instance.requests_[i]->release_date;
 
                 sprintf(var, "c6_%d,%d", i,k);
                 modelo.addConstr(t[0][k] - sum >= 0, var);
@@ -262,6 +247,34 @@ int main(int argc, char** argv) {
     catch (...) {
         std::cout << "Erro durante a execução." << std::endl;
     }
+
+}
+
+
+
+
+
+int main(int argc, char** argv) {
+
+    if(argc < 2){
+        printf("Correct command: ./bc data/\n");
+
+        return 0;
+
+    }else if(argc >= 2){
+        
+        Instance current_instance;
+        string filename = string(argv[1]);
+
+        current_instance.loadInstance(filename);           //passing the atributtes of the instance to the variables
+        current_instance.print();                          //printing the instances
+
+        solve(current_instance);
+    }
+
+    
+    
+    
 
     return 0;
 }

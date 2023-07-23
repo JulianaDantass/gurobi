@@ -1,6 +1,7 @@
 #ifndef INSTANCE_H_INCLUDED
 #define INSTANCE_H_INCLUDED
 
+    #include <iostream>
     #include <iomanip>
     #include <fstream>
     #include <vector>

@@ -1,8 +1,10 @@
+#include <iostream>
 #include "instance.h"
 #include <fstream>
 #include <regex>
 #include <algorithm>
 #include <string>
+#include <cmath>
 
 #define PARAMETERS_CHECK 6      
 
@@ -121,7 +123,7 @@ bool Instance::loadInstance(string instance_path){
 
         if(attributes_i.size() != 6){
             //cout << utils::clr::red
-            cout << "## Error: Instance format incorrect, unexpected value \"" << aux << "\" while reading the data (at Instance::load, line ";// << __LINE__ << ")" << endl
+            std::cout << "## Error: Instance format incorrect, unexpected value \"" << aux << "\" while reading the data (at Instance::load, line ";// << __LINE__ << ")" << endl
             // << utils::clr::none;
             return false;
         }
