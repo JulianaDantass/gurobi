@@ -8,6 +8,8 @@
 #include <string>
 #include <cmath>
 
+#define PARAMETERS_CHECK 6
+
 class Instance{
     public: // Public attributes
         bool loaded_;
@@ -337,7 +339,7 @@ void solve(Instance current_instance){
         }
 
         //IloNum M = 1e9;
-        int M = 1e8;
+        int M = 1e7;
         //Constraint 5                                          
         for(int i = 0; i < current_instance.dimension; i++){             
             for(int j = 1; j < current_instance.dimension; j++){
