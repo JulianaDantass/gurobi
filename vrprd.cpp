@@ -2,6 +2,11 @@
 #include <iostream>
 #include "classes.h"
 #include <vector>
+#include <fstream>
+#include <regex>
+#include <algorithm>
+#include <string>
+#include <cmath>
 
 class Instance{
     public: // Public attributes
@@ -404,10 +409,6 @@ void solve(Instance current_instance){
 
 }
 
-
-
-
-
 int main(int argc, char** argv) {
 
     if(argc < 2){
@@ -421,13 +422,10 @@ int main(int argc, char** argv) {
        string filename = string(argv[1]);
 
         current_instance.loadInstance(filename);           //passing the atributtes of the instance to the variables
-       current_instance.print();                          //printing the instances
+       //current_instance.print();                          //printing the instances
 
         solve(current_instance);
     }
-
-    
-    
     
 
     return 0;
