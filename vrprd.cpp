@@ -21,11 +21,11 @@ class Instance{
 
     public: // Public methods
 
-        double Instance::CalcDistEucledian(double &x_1, double &x_2, double &y_1, double &y_2){
+        double CalcDistEucledian(double &x_1, double &x_2, double &y_1, double &y_2){
             return sqrt ( pow ( x_1 - x_2, 2 ) + pow ( y_1 - y_2, 2 ) );
         }
 
-        bool Instance::loadInstance(string instance_path){
+        bool loadInstance(string instance_path){
             this->instance_path_ = instance_path;
 
             // Try to open the instance
@@ -139,7 +139,7 @@ class Instance{
             return true;
         }
 
-        vector<string> Instance::treating_string(string to_edit){
+        vector<string> treating_string(string to_edit){
             if (to_edit.back() == ' ') {     //removing the space in the final of string
                 to_edit.pop_back();
             }
