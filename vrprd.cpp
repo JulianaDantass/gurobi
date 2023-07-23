@@ -4,7 +4,7 @@
 #include <vector>
 
 
-solve(Instance current_instance){
+void solve(Instance current_instance){
 
     try {
         // Cria o ambiente Gurobi
@@ -174,7 +174,7 @@ solve(Instance current_instance){
             }
 
             sprintf(var, "c4_%d", k);
-            modelo.addConstr(sum <= current_iinstance.capacity, var);
+            modelo.addConstr(sum <= current_instance.capacity, var);
         }
 
         //IloNum M = 1e9;
@@ -256,18 +256,18 @@ solve(Instance current_instance){
 
 int main(int argc, char** argv) {
 
-    if(argc < 2){
-        printf("Correct command: ./bc data/\n");
+ //   if(argc < 2){
+   //     printf("Correct command: ./bc data/\n");
 
-        return 0;
+     //   return 0;
 
-    }else if(argc >= 2){
+   // }else if(argc >= 2){
         
-        Instance current_instance;
-        string filename = string(argv[1]);
+    //    Instance current_instance;
+      //  string filename = string(argv[1]);
 
-        current_instance.loadInstance(filename);           //passing the atributtes of the instance to the variables
-        current_instance.print();                          //printing the instances
+        //current_instance.loadInstance(filename);           //passing the atributtes of the instance to the variables
+       // current_instance.print();                          //printing the instances
 
         solve(current_instance);
     }
