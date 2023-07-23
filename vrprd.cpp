@@ -1,8 +1,162 @@
 #include <gurobi_c++.h>
 #include <iostream>
-#include "instance.h"
+#include "classes.h"
 #include <vector>
 
+class Instance{
+    public: // Public attributes
+        bool loaded_;
+
+        string name_instance;
+
+        int  dimension
+            ,capacity
+            ,vehicles;
+
+        string instance_path_;
+
+        vector<Request*> requests_;        //it has also the vertice 0 
+        vector<vector<double>> c_distances;
+        
+
+    public: // Public methods
+
+        double Instance::CalcDistEucledian(double &x_1, double &x_2, double &y_1, double &y_2){
+            return sqrt ( pow ( x_1 - x_2, 2 ) + pow ( y_1 - y_2, 2 ) );
+        }
+
+        bool Instance::loadInstance(string instance_path){
+            this->instance_path_ = instance_path;
+
+            // Try to open the instance
+            ifstream instance_file;
+            instance_file.open(instance_path_.c_str());
+            if(!instance_file){
+                //cerr << utils::clr::red
+                    cout << "## Error: Could not open instance file (at Instance::load, line"; 
+                //   << utils::clr::none;
+                return false;
+            }
+
+            string aux;
+
+            // Read name, dimension_, capacity, vehicles
+            instance_file >> aux >> name_instance
+                        >> aux >> dimension
+                        >> aux >> capacity
+                        >> aux >> vehicles;
+
+            
+            // Read the data
+            instance_file.ignore(100000, '\n');    //just ignoring the rest of the line 
+
+            vector<string> correct_pattern = {"No", "x_pos", "y_pos", "demand", "release", "due"};    //defining the vector with right pattern
+
+            int counter = 1;
+            while (counter != PARAMETERS_CHECK){       //checking de first line: "No x_pos y_pos demand release  due"
+                
+                instance_file >> aux;
+
+                if(aux != correct_pattern[counter-1]){ 
+                // cout << utils::clr::red
+                    cout << "## Error: Instance format incorrect, detected " << aux << ", but it was expected " << correct_pattern[counter-1];
+                    //<< " (at Instance::load, line " << __LINE__ << ")" << endl
+                    //<< utils::clr::none;
+                    return false;
+                }
+
+                counter++;
+            }
+
+            instance_file.ignore(100000, '\n'); // Ignore the rest of the current line
+
+            
+            int current_position = 0; // Counter 
+            
+
+            while(true){
+
+                getline(instance_file, aux);
+                
+                std::regex pattern("\\s+");
+                aux = std::regex_replace(aux, pattern, " ");         //to substitue the irregular spaces for just one space
+
+                
+                // Exit flag
+                if(instance_file.eof()) 
+                    break;
+
+                // Read the current line
+                //vector<string> values = utils::split(aux, ' ');
+
+                
+                vector<string> attributes_i = treating_string(aux);
+
+                if(attributes_i.size() != 6){
+                    //cout << utils::clr::red
+                    std::cout << "## Error: Instance format incorrect, unexpected value \"" << aux << "\" while reading the data (at Instance::load, line ";// << __LINE__ << ")" << endl
+                    // << utils::clr::none;
+                    return false;
+                }
+
+                Request* new_request = new Request();   //new object request to get the data
+                new_request->no = std::stoi(attributes_i[0]);
+                new_request->x_pos = std::stod(attributes_i[1]);
+                new_request->y_pos = std::stod(attributes_i[2]);
+                new_request->demand = std::stoi(attributes_i[3]);
+                new_request->release_date = std::stoi(attributes_i[4]);
+                new_request->due_date = std::stoi(attributes_i[5]);
+
+                requests_.push_back(new_request);            //adding the new request to the vector with all 
+
+                current_position++;
+            }    
+
+            //defining the matrix of distances
+
+            c_distances.resize(dimension);
+
+            for (auto& row : c_distances) {
+                row.resize(dimension);
+            }
+            
+            // Set the diagonal of the distance matrix as 0
+
+            for(int i = 0 ; i < dimension ; i++){
+                for(int j = 0 ; j < dimension ; j++){
+                    
+                    if(i == j){
+                        c_distances[i][j] = 0;
+
+                    }else{
+                        c_distances[i][j] = round(CalcDistEucledian(requests_[i]->x_pos, requests_[j]->x_pos, requests_[i]->y_pos,requests_[j]->y_pos));           
+                        
+                        //rounding the distance from vertice i to j 
+                    }
+                }
+            }
+                
+            return true;
+        }
+
+        vector<string> Instance::treating_string(string to_edit){
+            if (to_edit.back() == ' ') {     //removing the space in the final of string
+                to_edit.pop_back();
+            }
+            
+            vector<std::string> attributes;
+            std::string::size_type start = 0;
+            string::size_type end = 0;
+
+            while ((end = to_edit.find(' ', start)) != std::string::npos) {    //localizing the spaces and removing them 
+                attributes.push_back(to_edit.substr(start, end - start));
+                start = end + 1;
+            }
+            attributes.push_back(to_edit.substr(start));          
+
+            return attributes;
+        }
+};
 
 void solve(Instance current_instance){
 
