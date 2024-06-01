@@ -7,8 +7,11 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+#include <iomanip>
 
 #define PARAMETERS_CHECK 6
+
+using namespace std;
 
 class Instance{
     public: // Public attributes
@@ -163,6 +166,47 @@ class Instance{
 
             return attributes;
         }
+
+
+        void print(){
+            cout << ">> Printing instance..." << endl;
+
+            cout << "Name of the instance = " << name_instance << endl;
+            cout << "Dimension = " << dimension << endl;
+            cout << "Vehicle capacity = " << capacity << endl;
+            cout << "Number of vehicles = " << vehicles << endl;
+            
+
+            // Print the details of each request
+            for(unsigned int i = 0 ; i < requests_.size() ; i++){
+                cout << "============================  Request " << i << " ============================" << endl
+                    << "   No: " << requests_[i]->no << endl
+                    << "   x_pos: " << requests_[i]->x_pos << endl 
+                    << "   y_pos: " << requests_[i]->y_pos << endl 
+                    << "   demand: " << requests_[i]->demand << endl 
+                    << "   release_date: " << requests_[i]->release_date << endl 
+                    << "   due_date: " << requests_[i]->due_date << endl;
+                    //getchar();
+
+            }
+
+            cout << endl;
+            cout << "Distance matrix:" << endl << setprecision(2) << fixed;
+
+            
+            for(int i = 0 ; i < dimension ; i++){
+                cout << "Node " << i << " distances: " << endl;
+                for(int j = 0 ; j < dimension ; j++){       
+                    cout << "[" << j << "]: " <<  c_distances[i][j]  << "   ";
+                    if(j == dimension/2){
+                        cout << endl;
+                    }
+                }
+                cout << endl << endl;
+            }
+                
+            cout << "===============================================================" << endl;
+        }
 };
 
 void solve(Instance current_instance){
@@ -174,10 +218,14 @@ void solve(Instance current_instance){
 
         // Cria o modelo
         GRBModel modelo = GRBModel(env);
-        modelo.getEnv().set(GRB_DoubleParam_FeasibilityTol, 1e-10);
+        //modelo.getEnv().set(GRB_DoubleParam_FeasibilityTol, 1e-9);
 
         // Cria as variáveis de decisão
-        char var[100];                        
+        current_instance.print();
+        char var[100];               
+
+
+        cout << "dimension: " << current_instance.dimension << endl;         
     
         GRBVar*** x = new GRBVar**[current_instance.dimension];
 
@@ -272,7 +320,7 @@ void solve(Instance current_instance){
             }
 
             sprintf(var, "c1_%d", i);
-	    modelo.addConstr(sum == 1, var);
+	        modelo.addConstr(sum == 1, var);
         }
 
         //Constraint 2: every vertex is served exactly once 
@@ -340,7 +388,7 @@ void solve(Instance current_instance){
         }
 
         //IloNum M = 1e9;
-        int M = 1e7;
+        int M = 1e4;
         //Constraint 5                                          
         for(int i = 0; i < current_instance.dimension; i++){             
             for(int j = 1; j < current_instance.dimension; j++){
@@ -386,7 +434,7 @@ void solve(Instance current_instance){
             std::cout << "Solução ótima encontrada!" << "valor:" << modelo.get(GRB_DoubleAttr_ObjVal) << std::endl;
             //std::cout << "Valor de x: " << x.get(GRB_DoubleAttr_X) << std::endl;
             //std::cout << "Valor de y: " << y.get(GRB_DoubleAttr_X) << std::endl;
-        modelo.write("modelo.lp");
+            modelo.write("modelo.lp");
 	
             for (int i = 0; i < current_instance.dimension; i++) {
                 for (int j = 0; j < current_instance.dimension; j++) {
@@ -394,11 +442,23 @@ void solve(Instance current_instance){
                         for(int k = 0; k < current_instance.vehicles; k++){
             
                             if (x[i][j][k].get(GRB_DoubleAttr_X) > 0.5)
-                                std::cout << "x_" << i << ", " << j << ", " <<  k <<" = " << x[i][j][k].get(GRB_DoubleAttr_X) << std::endl;
+                                std::cout << "x(" << i << "," << j << "," <<  k <<") = " << x[i][j][k].get(GRB_DoubleAttr_X) << std::endl;
                         }
                     }
                 }
             }
+
+
+            for (int i = 0; i < current_instance.dimension; i++) {
+                for (int k = 0; k < current_instance.vehicles; k++) {
+            
+                    if (t[i][k].get(GRB_DoubleAttr_X) > 0.0)
+                        std::cout << "T(" << i << "," <<  k <<") = " << t[i][k].get(GRB_DoubleAttr_X) << std::endl;
+                        
+                    
+                }
+            }
+
 	    }
 
     }
